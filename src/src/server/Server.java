@@ -1,7 +1,6 @@
 package server;
 
 import javafx.util.Pair;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,6 +39,11 @@ public class Server {
         this.handlers.add(h);
     }
 
+    /**
+     *
+     * @param cmd
+     * @param arg
+     */
     private void alertHandlers(String cmd, String arg) {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
