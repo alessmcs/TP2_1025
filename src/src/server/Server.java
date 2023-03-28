@@ -1,13 +1,13 @@
 package server;
 
 import javafx.util.Pair;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Server {
 
@@ -26,9 +26,9 @@ public class Server {
      * @throws IOException
      */
     public Server(int port) throws IOException {
-        this.server = new ServerSocket(port, 1);
+        this.server = new ServerSocket(port, 1); // the constructor starts the connection to the server
         this.handlers = new ArrayList<EventHandler>();
-        this.addEventHandler(this::handleEvents);
+        this.addEventHandler(this::handleEvents); // handleEvents returns
     }
 
     /**
@@ -89,6 +89,7 @@ public class Server {
         client.close();
     }
 
+
     public void handleEvents(String cmd, String arg) {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
@@ -105,8 +106,39 @@ public class Server {
      @param arg la session pour laquelle on veut récupérer la liste des cours
      */
     public void handleLoadCourses(String arg) {
-        // TODO: implémenter cette méthode
-    }
+        try {
+            FileReader fr = new FileReader("src/src/server/data/cours.txt");
+            BufferedReader reader = new BufferedReader(fr);
+
+            ArrayList<String> cours = new ArrayList<>();
+            // read the file line by line
+            Scanner scan = new Scanner(new File("src/src/server/data/cours.txt"));
+
+            // filtrer les cours selon la session dans l'argument & les mettre dans la liste
+            while (scan.hasNext()) {
+                String line = reader.readLine();
+                String semester = scan.next(); semester = scan.next(); semester = scan.next();
+                if(semester.equalsIgnoreCase(arg)){
+                    cours.add(line); // create the list
+                }
+            }
+
+            // output to the user
+            // you have to create a writer object, look aux notes de cours fichiers & serveur
+            Socket socket = server.accept();
+            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+
+            outputStream.writeObject(cours);
+            outputStream.close();
+            socket.close();
+            server.close();
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }       // ON A BESOIN DE CODE COTE CLIENT FOR THIS TO WORK
 
     /**
      Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
