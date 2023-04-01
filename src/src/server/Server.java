@@ -1,6 +1,7 @@
 package server;
 
 import javafx.util.Pair;
+import server.models.RegistrationForm;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -50,6 +51,9 @@ public class Server {
         }
     }
 
+    /**
+     *
+     */
     public void run() {
         while (true) {
             try {
@@ -125,12 +129,9 @@ public class Server {
 
             // output to the user
             // you have to create a writer object, look aux notes de cours fichiers & serveur
-            Socket socket = server.accept();
-            ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
-
-            outputStream.writeObject(cours);
-            outputStream.close();
-            socket.close();
+            objectOutputStream.writeObject(cours);
+            objectOutputStream.close();
+            client.close();
             server.close();
 
         } catch (FileNotFoundException e) {
@@ -146,6 +147,31 @@ public class Server {
      La méthode gère les exceptions si une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
     public void handleRegistration() {
-        // TODO: implémenter cette méthode
+        // le client va fournir plusieurs informations et on doit lire chaque ligne et l'écrire dans inscription.txt comme une longue ligne
+        try{
+            // objectInputStream is already made in run()
+            // créer l'instance de registrationForm dans ce fichier en utilisant objectInputStream
+            RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+
+            String inscription = ( registrationForm.getCourse().getSession()  + "\t" + registrationForm.getCourse().getCode()  + "\t" + registrationForm.getMatricule()
+                    + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail() );
+
+            FileOutputStream fileOs = new FileOutputStream("inscription.txt");
+
+            ObjectOutputStream os = new ObjectOutputStream(fileOs);
+            // écrire le string dans le fichier
+            os.writeObject(inscription);
+
+            // fermeture des flux
+            objectInputStream.close();
+            os.close();
+            server.close();
+        }
+        catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
