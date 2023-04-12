@@ -29,11 +29,11 @@ public class Server {
     public Server(int port) throws IOException {
         this.server = new ServerSocket(port, 1); // the constructor starts the connection to the server
         this.handlers = new ArrayList<EventHandler>();
-        this.addEventHandler(this::handleEvents); // handleEvents returns
+        this.addEventHandler(this::handleEvents);
     }
 
     /**
-     *
+     * Cette méthode ajoute un handler à une liste selon la requête du client.
      * @param h
      */
     public void addEventHandler(EventHandler h) {
@@ -41,6 +41,9 @@ public class Server {
     }
 
     /**
+     * Cette méthode prend comme arguments cmd et arg, qui sont definis en traitant chaque ligne dans la ligne de commande
+     * objectInputStream (du client). Elle itère à travers la liste de handlers et l'associe à la méthode handle de
+     * l'interface EventHandler, ce qui rend cette méthode unique aux objets de ce type.
      *
      * @param cmd
      * @param arg
@@ -70,6 +73,12 @@ public class Server {
         }
     }
 
+    /**
+     * Cette méthode permet d'associer certains éléments d'une ligne du input du client.
+     * Elle utilise la classe Pair pour associer chaque élément de la ligne à une valeur et une clé propre.
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public void listen() throws IOException, ClassNotFoundException {
         String line;
         if ((line = this.objectInputStream.readObject().toString()) != null) {
@@ -80,6 +89,12 @@ public class Server {
         }
     }
 
+    /**
+     * Cette méthode lit la ligne de commande (line) et la découpe en variables utiles pour le traitement
+     * des requêtes par le client.
+     * @param line
+     * @return
+     */
     public Pair<String, String> processCommandLine(String line) {
         String[] parts = line.split(" ");
         String cmd = parts[0];
@@ -87,13 +102,23 @@ public class Server {
         return new Pair<>(cmd, args);
     }
 
+    /**
+     * Cette méthode referme simplement tous les flux de communication entre le client et le serveur. Elle
+     * est appelée à la fin de run, suite à l'interaction avec le client.
+     * @throws IOException
+     */
     public void disconnect() throws IOException {
         objectOutputStream.close();
         objectInputStream.close();
         client.close();
     }
 
-
+    /**
+     * Le client peut envoyer deux types de requêtes au serveur : charger (load) ou inscrire (register). Cette
+     * méthode exécute différents traitements des données fournies du côté client selon la requête indiquée.
+     * @param cmd
+     * @param arg
+     */
     public void handleEvents(String cmd, String arg) {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
@@ -111,22 +136,23 @@ public class Server {
      */
     public void handleLoadCourses(String arg) {
         try {
-            FileReader fr = new FileReader("src/src/server/data/cours.txt");
+            FileReader fr = new FileReader("src/server/data/cours.txt");
             BufferedReader reader = new BufferedReader(fr);
 
             ArrayList<String> cours = new ArrayList<>();
             // read the file line by line
-            Scanner scan = new Scanner(new File("src/src/server/data/cours.txt"));
+            Scanner scan = new Scanner(new File("src/server/data/cours.txt"));
 
             // filtrer les cours selon la session dans l'argument & les mettre dans la liste
             while (scan.hasNext()) {
                 String line = reader.readLine();
-                String semester = scan.next(); semester = scan.next(); semester = scan.next();
-                if(semester.equalsIgnoreCase(arg)){
+                String semester = scan.next();
+                semester = scan.next();
+                semester = scan.next();
+                if (semester.equalsIgnoreCase(arg)) {
                     cours.add(line); // create the list
                 }
             }
-
             // output to the user
             // you have to create a writer object, look aux notes de cours fichiers & serveur
             objectOutputStream.writeObject(cours);
