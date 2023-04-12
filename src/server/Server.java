@@ -9,6 +9,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
+import server.models.*;
 
 public class Server {
 
@@ -48,7 +49,7 @@ public class Server {
      * @param cmd
      * @param arg
      */
-    private void alertHandlers(String cmd, String arg) {
+    private void alertHandlers(String cmd, String arg) throws IOException {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
@@ -119,7 +120,7 @@ public class Server {
      * @param cmd
      * @param arg
      */
-    public void handleEvents(String cmd, String arg) {
+    public void handleEvents(String cmd, String arg) throws IOException {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
@@ -134,38 +135,45 @@ public class Server {
      La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet dans le flux.
      @param arg la session pour laquelle on veut récupérer la liste des cours
      */
-    public void handleLoadCourses(String arg) {
+    public void handleLoadCourses(String arg) throws IOException {
         try {
             FileReader fr = new FileReader("src/server/data/cours.txt");
             BufferedReader reader = new BufferedReader(fr);
 
-            ArrayList<String> cours = new ArrayList<>();
-            // read the file line by line
+            ArrayList<Course> coursSessionChoisie = new ArrayList<>();
+
             Scanner scan = new Scanner(new File("src/server/data/cours.txt"));
 
             // filtrer les cours selon la session dans l'argument & les mettre dans la liste
+            // once filtered, parse through the file
             while (scan.hasNext()) {
-                String line = reader.readLine();
-                String semester = scan.next();
-                semester = scan.next();
-                semester = scan.next();
-                if (semester.equalsIgnoreCase(arg)) {
-                    cours.add(line); // create the list
+                String semester = arg;
+                    String line = scan.nextLine();
+
+                    String[] infos = line.split(" ");
+                    String codeCours = ""; String nomCours = ""; String sessionCours = "";
+
+                    codeCours = infos[0]; // premier element sur la ligne
+                    nomCours = infos[1];
+                    sessionCours = infos[2];
+                    if (sessionCours.equals(arg)) {
+                        Course course = new Course(nomCours, codeCours, sessionCours);
+                        coursSessionChoisie.add(course); // add to the arraylist of objects
+                    }
                 }
-            }
-            // output to the user
+
+        // output to the user
             // you have to create a writer object, look aux notes de cours fichiers & serveur
-            objectOutputStream.writeObject(cours);
+            objectOutputStream.writeObject(coursSessionChoisie);
             objectOutputStream.close();
             client.close();
             server.close();
-
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
+        } catch (FileNotFoundException ex) {
+            throw new RuntimeException(ex);
+        }   catch (IOException e) {
             e.printStackTrace();
         }
-    }       // ON A BESOIN DE CODE COTE CLIENT FOR THIS TO WORK
+        }       // ON A BESOIN DE CODE COTE CLIENT FOR THIS TO WORK
 
     /**
      Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
