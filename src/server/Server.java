@@ -10,9 +10,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 
+/***
+ * Représenter un serveur sur un port donné
+ */
 public class Server {
-
+    /***
+     * Désigne un bouton évènement pour l'inscription aux cours
+     */
     public final static String REGISTER_COMMAND = "INSCRIRE";
+    /***
+     * Désigne un bouton évènement pour le chargement de la session en question
+     */
     public final static String LOAD_COMMAND = "CHARGER";
     private final ServerSocket server;
     private Socket client;
@@ -21,9 +29,9 @@ public class Server {
     private final ArrayList<EventHandler> handlers;
 
     /**
-     * Cette méthode sert de construction pour cette classe. Elle associe notamment un port au serveur sur lequel on
-     * va travailler, puis une liste de méthodes de traitements d'évènements pouvant provenir du serveur.
-     * @param port
+     * Créer le constructeur de l'objet serveur qui est une instance de 'ServerSocket' et traite au maximum 1 client.
+     * L'objet contient une liste de gestionnaire d'événements.
+     * @param port la valeur par laquelle on définit le port dans la création du serveur
      * @throws IOException
      */
     public Server(int port) throws IOException {
@@ -33,17 +41,17 @@ public class Server {
     }
 
     /**
-     *
-     * @param h
+     * Ajouter la séquence d'élément dans la liste d'éléments associés à cet objet
+     * @param h séquence d'évènement de type 'EventHandler'
      */
     public void addEventHandler(EventHandler h) {
         this.handlers.add(h);
     }
 
     /**
-     *
-     * @param cmd
-     * @param arg
+     * Associer une alerte à tous les éléments de la liste en appelant la commande de l'argument donné
+     * @param cmd la commande à transmettre à chaque gestionnaire d'événements enregistré.
+     * @param arg l'argument à transmettre à chaque gestionnaire d'événements enregistré.
      */
     private void alertHandlers(String cmd, String arg) {
         for (EventHandler h : this.handlers) {
@@ -52,7 +60,9 @@ public class Server {
     }
 
     /**
-     *
+     * Répond de manière continue aux demandes de connection du côté client.
+     * Gère la connection client-serveur en traitant les données envoyées par les clients.
+     * @throws Exception pour attraper une erreur produite lors de la lecture ou l'écriture de l'objet.
      */
     public void run() {
         while (true) {
@@ -70,6 +80,13 @@ public class Server {
         }
     }
 
+    /***
+     * Cette méthode traite les types d'exceptions suivantes :
+     * @throws IOException lorsqu'une erreur survient lors de la lecture du flux d'entrée
+     * @throws ClassNotFoundException pour une erreur qui se produit sur une classe inexistante
+     * @throws NullPointerException pour une ligne de commande vide
+     */
+
     public void listen() throws IOException, ClassNotFoundException {
         String line;
         if ((line = this.objectInputStream.readObject().toString()) != null) {
@@ -80,6 +97,12 @@ public class Server {
         }
     }
 
+    /***
+     * Cette méthode prend une ligne de commande en entrée et sépare la commande de ses arguments en deux.
+     * @param line entrée à analyser
+     * @return Pair un objet qui contient la commande et ses arguments
+     */
+
     public Pair<String, String> processCommandLine(String line) {
         String[] parts = line.split(" ");
         String cmd = parts[0];
@@ -87,11 +110,22 @@ public class Server {
         return new Pair<>(cmd, args);
     }
 
+    /***
+     * Cette méthode déconnecte le client du serveur en fermant les flux de sortie et d'entrée, ainsi que la connexion.
+     * @throws IOException
+     */
+
     public void disconnect() throws IOException {
         objectOutputStream.close();
         objectInputStream.close();
         client.close();
     }
+
+    /***
+     * Cette méthode traite l'inscription ou le chargement des cours selon la commande passée en argument
+     * @param cmd la commande à envoyer aux gestionnaires d'événement
+     * @param arg l'argument associé à la commande
+     */
 
 
     public void handleEvents(String cmd, String arg) {
@@ -106,7 +140,8 @@ public class Server {
      Lire un fichier texte contenant des informations sur les cours et les transformer en liste d'objets 'Course'.
      La méthode filtre les cours par la session spécifiée en argument.
      Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
-     La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet dans le flux.
+     La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de l'objet
+     dans le flux.
      @param arg la session pour laquelle on veut récupérer la liste des cours
      */
     public void handleLoadCourses(String arg) {
@@ -141,10 +176,11 @@ public class Server {
         }
     }       // ON A BESOIN DE CODE COTE CLIENT FOR THIS TO WORK
 
-    /**
-     Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
-     et renvoyer un message de confirmation au client.
-     La méthode gère les exceptions si une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
+    /***
+     * Traite une demande d'inscription en enregistrant les informations du client via un objet RegistrationForm dans le
+     * fichier d'inscription
+     * @throws IOException pour une erreur qui se produit lors de la lecture ou l'écriture du formulaire d'inscription
+     * @throws ClassNotFoundException si la classe RegistrationForm n'est pas trouvée lors de la sérialisation
      */
     public void handleRegistration() {
         // le client va fournir plusieurs informations et on doit lire chaque ligne et l'écrire dans inscription.txt comme une longue ligne
@@ -174,4 +210,12 @@ public class Server {
         }
 
     }
+
+
+                }
+            }
+        }
+    }
 }
+
+
