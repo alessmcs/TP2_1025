@@ -1,7 +1,7 @@
-package server;
+package main;
 
 public class ServerLauncher {
-    public final static int PORT = 1337;
+    public final static int PORT = 1338;
 
     public static void main(String[] args) {
         Server server;
